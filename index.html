@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Removedor de Voz Gratuito - Remova Vocais de Qualquer Música | Estúdio Neto</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              dark: '#070a13',
+              card: '#0f1423',
+              accent: '#6366f1',
+              accentHover: '#4f46e5',
+              success: '#10b981',
+              border: '#1e293b'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-runnable-track {
+      background: #1e293b;
+      height: 6px;
+      border-radius: 3px;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      margin-top: -5px;
+      background-color: #6366f1;
+      height: 16px;
+      width: 16px;
+      border-radius: 50%;
+      box-shadow: 0 0 8px rgba(99, 102, 241, 0.5);
+    }
+    input[type="range"]::-moz-range-track {
+      background: #1e293b;
+      height: 6px;
+      border-radius: 3px;
+    }
+    input[type="range"]::-moz-range-thumb {
+      background-color: #6366f1;
+      height: 16px;
+      width: 16px;
+      border-radius: 50%;
+      border: none;
+      box-shadow: 0 0 8px rgba(99, 102, 241, 0.5);
+    }
+  </style>
+</head>
+<body class="bg-[#04060b] text-gray-200 min-h-screen font-sans flex flex-col justify-between">
+
+  <!-- Header Simples e Dedicado (Sem Menus) -->
+  <header class="border-b border-brand-border bg-brand-dark/90 py-4 px-6 sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto flex items-center gap-3">
+      <span class="text-3xl">🎤</span>
+      <h1 class="text-xl font-bold bg-gradient-to-r from-white to-indigo-200 bg-clip-text text-transparent">
+        Removedor de Voz Local
+      </h1>
+    </div>
+  </header>
+
+  <!-- CONTEÚDO DA FERRAMENTA -->
+  <main class="max-w-6xl w-full mx-auto p-4 md:p-8 flex-grow space-y-12">
+    
+    <!-- Seção de Processamento de Áudio -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      
+      <!-- Lado Esquerdo: Área de Upload, Ondas de Som e Controles de Play -->
+      <section class="lg:col-span-7 space-y-6">
+        <!-- Dropzone -->
+        <div id="p-dropzone" class="border-2 border-dashed border-brand-border hover:border-brand-accent/50 transition-colors rounded-2xl p-8 bg-brand-card text-center cursor-pointer group">
+          <input type="file" id="p-file-input" accept="audio/*" class="hidden">
+          <div class="flex flex-col items-center gap-4">
+            <div class="w-16 h-16 rounded-full bg-indigo-500/10 flex items-center justify-center text-brand-accent group-hover:scale-105 transition-transform">
+              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+            </div>
+            <div>
+              <p class="font-semibold text-white">Selecione o arquivo para remover os vocais</p>
+              <p class="text-xs text-gray-400 mt-1">Formatos suportados: MP3, WAV, FLAC, M4A ou AAC (Processamento 100% Local)</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Player de Reprodução -->
+        <div id="p-player-container" class="bg-brand-card rounded-2xl border border-brand-border p-6 hidden space-y-6">
+          <div class="flex items-start justify-between gap-4">
+            <div class="truncate">
+              <p class="text-xs text-gray-400 font-mono">Removedor de Voz Ativo</p>
+              <h3 id="p-track-name" class="font-bold text-white truncate text-base mb-2">Nome_da_Faixa.mp3</h3>
+              <button id="p-btn-reset" class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold border border-brand-border hover:border-brand-accent/40 bg-brand-dark px-3 py-1.5 rounded-lg transition-all inline-flex items-center gap-1 focus:outline-none">
+                🔄 Enviar Outra Música
+              </button>
+            </div>
+            <div id="p-time-display" class="text-sm font-mono text-brand-accent">0:00 / 0:00</div>
+          </div>
+          <div class="relative bg-brand-dark rounded-xl overflow-hidden">
+            <canvas id="p-waveform-canvas" class="w-full h-24 block cursor-pointer"></canvas>
+            <div id="p-playhead" class="absolute top-0 left-0 w-0.5 h-full bg-brand-accent pointer-events-none shadow-[0_0_8px_#6366f1]"></div>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <button id="p-btn-play" class="w-12 h-12 rounded-full bg-brand-accent hover:bg-brand-accentHover text-white flex items-center justify-center transition-all">
+                <svg class="w-6 h-6 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+              </button>
+              <button id="p-btn-stop" class="w-10 h-10 rounded-full bg-brand-border hover:bg-red-500/20 text-gray-300 flex items-center justify-center transition-all">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg>
+              </button>
+            </div>
+            <div class="flex bg-brand-dark p-1 rounded-xl border border-brand-border">
+              <button id="p-btn-mode-b" class="px-4 py-1.5 rounded-lg text-sm font-bold transition-all text-gray-400 hover:text-white">B (Original)</button>
+              <button id="p-btn-mode-a" class="px-4 py-1.5 rounded-lg text-sm font-bold transition-all bg-brand-accent text-white shadow-md">A (Instrumental)</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Lado Direito: Parâmetros e Download -->
+      <section class="lg:col-span-5 space-y-6">
+        <div class="bg-brand-card rounded-2xl border border-brand-border p-6 space-y-6">
+          <h2 class="text-lg font-bold text-white flex items-center gap-2"><span>🎚️</span> Ajustes do Filtro</h2>
+          
+          <div class="space-y-4">
+            <!-- Slider de Atenuação -->
+            <div class="space-y-2">
+              <div class="flex justify-between items-center">
+                <label class="text-xs text-gray-400 font-semibold">Atenuação da Voz Central</label>
+                <span id="p-attenuation-val" class="text-sm font-mono text-brand-accent font-bold">100%</span>
+              </div>
+              <input type="range" id="p-attenuation-slider" min="0" max="100" step="5" value="100" class="w-full">
+            </div>
+
+            <!-- Slider de Crossover de Graves -->
+            <div class="space-y-2 pt-2 border-t border-brand-border/40">
+              <div class="flex justify-between items-center">
+                <label class="text-xs text-gray-400 font-semibold">Crossover de Graves (Preservar Baixo/Bumbo)</label>
+                <span id="p-crossover-val" class="text-sm font-mono text-brand-accent font-bold">130 Hz</span>
+              </div>
+              <input type="range" id="p-crossover-slider" min="80" max="250" step="5" value="130" class="w-full">
+            </div>
+          </div>
+
+          <div class="pt-4 border-t border-brand-border">
+            <button id="p-btn-download" disabled class="w-full bg-brand-success hover:bg-emerald-600 disabled:bg-gray-800 disabled:text-gray-500 disabled:cursor-not-allowed text-white py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all">
+              Baixar Instrumental WAV
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- TEXTOS EXPLICATIVOS E INFORMATIVOS REESCRITOS (BASE DE CONHECIMENTO) -->
+    <article class="space-y-10 text-gray-300 pt-4 border-t border-brand-border/50">
+      
+      <!-- O que é -->
+      <section class="space-y-4">
+        <h2 class="text-2xl font-semibold text-white">Como Funciona a Isolação e Extração de Voz?</h2>
+        <p>
+          A <strong class="text-white">isolação ou extração de voz</strong> consiste na separação das pistas vocais e instrumentais que compõem uma gravação estéreo finalizada. No passado, as primeiras tentativas de atenuação dependiam de um cancelamento de fase analógico simples que, ao subtrair os canais esquerdo e direito, acabava por eliminar também as baixas frequências (como contrabaixos e bumbos de bateria) que residiam no centro da mixagem de forma indevida.
+        </p>
+        <p>
+          Com os algoritmos de processamento digital modernos do Estúdio Neto, aplicamos filtros de crossover específicos na estrutura de sinal. Isso nos permite isolar e atenuar a voz principal localizada na imagem estéreo centralizada, mantendo totalmente intacto e com peso rítmico o campo de frequências graves da sua música.
+        </p>
+      </section>
+
+      <!-- Guia Passo a Passo -->
+      <section class="space-y-4">
+        <h2 class="text-2xl font-semibold text-white">Guia para Remover Vocais com Processamento Local</h2>
+        <div class="space-y-4">
+          <div class="bg-brand-card/60 border border-brand-border/40 rounded-xl p-5 space-y-2">
+            <h3 class="text-lg font-semibold text-indigo-300">1. Seleção do Arquivo de Áudio</h3>
+            <p class="text-sm">Arraste ou clique para carregar arquivos nos formatos MP3, WAV, FLAC, M4A ou AAC. O sinal é lido localmente na memória RAM do seu computador de forma totalmente segura.</p>
+          </div>
+          <div class="bg-brand-card/60 border border-brand-border/40 rounded-xl p-5 space-y-2">
+            <h3 class="text-lg font-semibold text-white">2. Ajustes e Filtros Dinâmicos</h3>
+            <p class="text-sm">Regule o controle deslizante de atenuação para definir o nível de remoção das vozes e configure o crossover de graves para isolar e preservar as batidas e a linha de baixo originais da gravação.</p>
+          </div>
+          <div class="bg-brand-card/60 border border-brand-border/40 rounded-xl p-5 space-y-2">
+            <h3 class="text-lg font-semibold text-white">3. Reprodução e Exportação</h3>
+            <p class="text-sm">Escute o resultado na hora usando nossos modos de pré-visualização. Se estiver de acordo, acione o download para gravar o seu arquivo instrumental em WAV linear sem perdas.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Casos de Uso -->
+      <section class="space-y-4">
+        <h2 class="text-2xl font-semibold text-white">Aplicações Práticas da Extração Instrumental</h2>
+        <div class="grid md:grid-cols-2 gap-4">
+          <div class="bg-brand-card/60 border border-brand-border/40 rounded-xl p-5 space-y-2">
+            <div class="flex items-center gap-2">
+              <span class="text-2xl">🎤</span>
+              <h3 class="text-lg font-semibold text-indigo-300">Prática de Canto (Karaokê)</h3>
+            </div>
+            <p class="text-sm">Gere faixas de acompanhamento limpas de qualquer música de sua preferência para ensaiar, se preparar para apresentações ou cantar de forma amadora.</p>
+          </div>
+          <div class="bg-brand-card/60 border border-brand-border/40 rounded-xl p-5 space-y-2">
+            <div class="flex items-center gap-2">
+              <span class="text-2xl">🎛️</span>
+              <h3 class="text-lg font-semibold text-indigo-300">Criação de Remixes e Amostras</h3>
+            </div>
+            <p class="text-sm">Isole instrumentos e elementos harmônicos específicos da música original para criar novos arranjos, mashups ou edições rítmicas para DJs.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Funcionamento Técnico -->
+      <section class="space-y-4">
+        <h2 class="text-2xl font-semibold text-white">Como Funciona o Processamento de Sinal (DSP)</h2>
+        <p>
+          Esta ferramenta opera utilizando um processador de sinal digital (DSP) que roda diretamente na arquitetura Web Audio da sua máquina. O áudio estéreo é decodificado em matrizes de dados numéricos (canais de dados float) para os lados Esquerdo e Direito. 
+        </p>
+        <p>
+          Aplicamos um filtro de divisão espectral de fase linear que separa os graves da mixagem, enquanto faz o cancelamento da fase centralizada na região dos médios e agudos (região de atuação das vozes). O resultado unificado reconstrói a sua música de saída em duas pistas limpas e funcionais.
+        </p>
+      </section>
+
+      <!-- FAQ Teórica OBRIGATÓRIA -->
+      <section class="space-y-4">
+        <h2 class="text-2xl font-semibold text-white">Perguntas Frequentes (FAQ)</h2>
+        <div class="space-y-4">
+          <div class="bg-brand-card/60 border border-brand-border/40 rounded-xl p-5 space-y-2">
+            <h3 class="text-lg font-semibold text-white">A remoção de voz é 100% perfeita?</h3>
+            <p class="text-sm text-gray-400">A eficácia do processamento síncrono depende muito da mixagem de origem. Músicas de estúdio bem equilibradas, com a voz principal gravada no centro absoluto da imagem estéreo e os instrumentos abertos nas extremidades (guitarras, efeitos e reverbs panoramizados), produzem resultados de altíssima qualidade de atenuação.</p>
+          </div>
+          <div class="bg-brand-card/60 border border-brand-border/40 rounded-xl p-5 space-y-2">
+            <h3 class="text-lg font-semibold text-white">Meus arquivos de música são enviados para algum lugar?</h3>
+            <p class="text-sm text-gray-400">Não. Todo o processamento matemático é realizado de forma inteiramente local no seu próprio computador através do navegador. Seus arquivos de áudio não saem do seu dispositivo, garantindo total privacidade e segurança.</p>
+          </div>
+          <div class="bg-brand-card/60 border border-brand-border/40 rounded-xl p-5 space-y-2">
+            <h3 class="text-lg font-semibold text-white">Quais formatos de arquivo posso utilizar?</h3>
+            <p class="text-sm text-gray-400">Suportamos extensões comuns de áudio comprimidos e não-comprimidos como MP3, WAV, FLAC, M4A e AAC de até 250 MB.</p>
+          </div>
+        </div>
+      </section>
+
+    </article>
+
+  </main>
+
+  <!-- Modal de Carregamento e Progresso -->
+  <div id="loader-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300">
+    <div class="bg-brand-card border border-brand-border p-8 rounded-2xl max-w-sm w-full text-center space-y-4 shadow-2xl">
+      <div class="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+      <h3 id="loader-title" class="text-lg font-bold text-white">Carregando</h3>
+      <p id="loader-text" class="text-sm text-gray-400">Por favor, aguarde...</p>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="border-t border-brand-border py-6 bg-brand-dark/50 text-center text-xs text-gray-500">
+    <div class="max-w-6xl mx-auto px-4 space-y-2">
+      <p class="font-bold text-gray-400 text-sm">Desenvolvido por Estúdio Neto</p>
+      <p class="text-[10px] text-gray-500">Toda a computação de DSP ocorre localmente no navegador, garantindo privacidade total sobre seus arquivos de áudio.</p>
+    </div>
+  </footer>
+
+  <!-- SCRIPT DE PROCESSAMENTO DE ÁUDIO NATIVO -->
+  <script>
+    let audioCtx = null;
+    let targetBuffer = null;
+    let processedBuffer = null;
+    let sourceNode = null;
+    let processorNode = null;
+    let isPlaying = false;
+    let startTime = 0;
+    let pauseTime = 0;
+    let currentMode = 'A'; // 'A' = Processado, 'B' = Original
+    let targetFileName = "";
+
+    // Filtros persistentes para evitar estalos de descontinuidade no real-time onaudioprocess
+    let lpL = 0;
+    let lpR = 0;
+
+    const fileInput = document.getElementById("p-file-input");
+    const dropzone = document.getElementById("p-dropzone");
+    const playerContainer = document.getElementById("p-player-container");
+    const btnPlay = document.getElementById("p-btn-play");
+    const btnStop = document.getElementById("p-btn-stop");
+    const btnModeA = document.getElementById("p-btn-mode-a");
+    const btnModeB = document.getElementById("p-btn-mode-b");
+    const btnReset = document.getElementById("p-btn-reset");
+    const btnDownload = document.getElementById("p-btn-download");
+    
+    const sliderAttenuation = document.getElementById("p-attenuation-slider");
+    const sliderCrossover = document.getElementById("p-crossover-slider");
+    const valAttenuation = document.getElementById("p-attenuation-val");
+    const valCrossover = document.getElementById("p-crossover-val");
+
+    const loaderModal = document.getElementById("loader-modal");
+    const loaderTitle = document.getElementById("loader-title");
+    const loaderText = document.getElementById("loader-text");
+
+    function showLoader(title, text) {
+      loaderTitle.textContent = title;
+      loaderText.textContent = text;
+      loaderModal.classList.remove("opacity-0", "pointer-events-none");
+    }
+
+    function hideLoader() {
+      loaderModal.classList.add("opacity-0", "pointer-events-none");
+    }
+
+    dropzone.addEventListener("click", () => fileInput.click());
+    dropzone.addEventListener("dragover", (e) => { e.preventDefault(); dropzone.classList.add("border-brand-accent"); });
+    dropzone.addEventListener("dragleave", () => dropzone.classList.remove("border-brand-accent"));
+    dropzone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      dropzone.classList.remove("border-brand-accent");
+      if (e.dataTransfer.files.length > 0) loadFile(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener("change", (e) => {
+      if (e.target.files.length > 0) loadFile(e.target.files[0]);
+    });
+
+    async function loadFile(file) {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      targetFileName = file.name.split('.').slice(0, -1).join('.');
+      showLoader("Carregando", "Processando arquivo de áudio...");
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        targetBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+        dropzone.classList.add("hidden");
+        playerContainer.classList.remove("hidden");
+        btnDownload.disabled = false;
+        document.getElementById("p-track-name").textContent = file.name;
+        
+        applyDSP();
+        drawWaveform();
+        updatePlaybackTime(0);
+      } catch (err) {
+        console.error(err);
+        alert("Erro ao ler o arquivo de áudio.");
+      } finally {
+        hideLoader();
+      }
+    }
+
+    // Processamento matemático de áudio em tempo real (Filtro crossover de graves e atenuação vocal central)
+    function applyDSP() {
+      if (!targetBuffer) return;
+      const sampleRate = targetBuffer.sampleRate;
+      const length = targetBuffer.length;
+      
+      // Criamos um novo buffer para armazenar o instrumental para download síncrono
+      processedBuffer = audioCtx.createBuffer(2, length, sampleRate);
+      
+      const leftIn = targetBuffer.getChannelData(0);
+      const rightIn = targetBuffer.getChannelData(1);
+      const leftOut = processedBuffer.getChannelData(0);
+      const rightOut = processedBuffer.getChannelData(1);
+      
+      const crossoverFreq = parseFloat(sliderCrossover.value);
+      const attenuation = parseFloat(sliderAttenuation.value) / 100;
+      
+      // Coeficientes do filtro passa-baixas (IIR Filter simples de 1º polo)
+      const dt = 1 / sampleRate;
+      const rc = 1 / (2 * Math.PI * crossoverFreq);
+      const alpha = dt / (rc + dt);
+      
+      let lpL_local = 0;
+      let lpR_local = 0;
+      
+      for (let i = 0; i < length; i++) {
+        const l = leftIn[i];
+        const r = rightIn[i];
+        
+        // Filtro Passa-Baixas (Isola o bumbo e contrabaixo no centro)
+        lpL_local += alpha * (l - lpL_local);
+        lpR_local += alpha * (r - lpR_local);
+        
+        // Sinais Passa-Altas (Onde residem os vocais e instrumentos agudos)
+        const hpL = l - lpL_local;
+        const hpR = r - lpR_local;
+        
+        // Cancelamento de fase estéreo: L - R atenua o canal central (voz)
+        const cancelled = (hpL - hpR) * attenuation;
+        
+        // Somamos os graves preservados de volta ao sinal vocal-cancelado
+        leftOut[i] = lpL_local + cancelled;
+        rightOut[i] = lpR_local - cancelled;
+      }
+    }
+
+    function play() {
+      if (!targetBuffer) return;
+      if (audioCtx.state === "suspended") audioCtx.resume();
+      
+      sourceNode = audioCtx.createBufferSource();
+      sourceNode.buffer = targetBuffer;
+      
+      // Criamos o nó do processador para aplicar os filtros de forma dinâmica em tempo real na reprodução
+      processorNode = audioCtx.createScriptProcessor(4096, 2, 2);
+      
+      // Resetar os estados de frequências acumulados
+      lpL = 0;
+      lpR = 0;
+
+      processorNode.onaudioprocess = function(e) {
+        const leftIn = e.inputBuffer.getChannelData(0);
+        const rightIn = e.inputBuffer.getChannelData(1);
+        const leftOut = e.outputBuffer.getChannelData(0);
+        const rightOut = e.outputBuffer.getChannelData(1);
+        
+        const crossoverFreq = parseFloat(sliderCrossover.value);
+        const attenuation = parseFloat(sliderAttenuation.value) / 100;
+        
+        const dt = 1 / audioCtx.sampleRate;
+        const rc = 1 / (2 * Math.PI * crossoverFreq);
+        const alpha = dt / (rc + dt);
+        
+        for (let i = 0; i < e.inputBuffer.length; i++) {
+          const l = leftIn[i];
+          const r = rightIn[i];
+          
+          lpL += alpha * (l - lpL);
+          lpR += alpha * (r - lpR);
+          
+          if (currentMode === 'A') {
+            const hpL = l - lpL;
+            const hpR = r - lpR;
+            const cancelled = (hpL - hpR) * attenuation;
+            leftOut[i] = lpL + cancelled;
+            rightOut[i] = lpR - cancelled;
+          } else {
+            leftOut[i] = l;
+            rightOut[i] = r;
+          }
+        }
+      };
+
+      sourceNode.connect(processorNode);
+      processorNode.connect(audioCtx.destination);
+      
+      const offset = pauseTime;
+      sourceNode.start(0, offset);
+      startTime = audioCtx.currentTime - offset;
+      isPlaying = true;
+      btnPlay.innerHTML = `<svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`;
+      tick();
+    }
+
+    function pause() {
+      if (!isPlaying) return;
+      sourceNode.stop();
+      processorNode.disconnect();
+      pauseTime = audioCtx.currentTime - startTime;
+      isPlaying = false;
+      btnPlay.innerHTML = `<svg class="w-6 h-6 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`;
+    }
+
+    function stop() {
+      if (isPlaying) {
+        sourceNode.stop();
+        processorNode.disconnect();
+        isPlaying = false;
+      }
+      pauseTime = 0;
+      updatePlaybackTime(0);
+      btnPlay.innerHTML = `<svg class="w-6 h-6 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`;
+    }
+
+    function tick() {
+      if (!isPlaying) return;
+      const elapsed = audioCtx.currentTime - startTime;
+      if (elapsed >= targetBuffer.duration) {
+        stop();
+        return;
+      }
+      updatePlaybackTime(elapsed);
+      requestAnimationFrame(tick);
+    }
+
+    function updatePlaybackTime(seconds) {
+      const current = formatTime(seconds);
+      const total = formatTime(targetBuffer ? targetBuffer.duration : 0);
+      document.getElementById("p-time-display").textContent = `${current} / ${total}`;
+      if (targetBuffer) {
+        const percent = (seconds / targetBuffer.duration) * 100;
+        document.getElementById("p-playhead").style.width = `${percent}%`;
+      }
+    }
+
+    function drawWaveform() {
+      const canvas = document.getElementById("p-waveform-canvas");
+      const ctx = canvas.getContext("2d");
+      const width = canvas.width = canvas.parentElement.clientWidth;
+      const height = canvas.height = 96;
+      const rawData = targetBuffer.getChannelData(0);
+      const step = Math.ceil(rawData.length / width);
+      const amp = height / 2;
+
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = "rgba(15, 20, 35, 0.8)";
+      ctx.fillRect(0, 0, width, height);
+
+      const grad = ctx.createLinearGradient(0, 0, 0, height);
+      grad.addColorStop(0, "#818cf8");
+      grad.addColorStop(0.5, "#4f46e5");
+      grad.addColorStop(1, "#818cf8");
+      ctx.fillStyle = grad;
+
+      for (let i = 0; i < width; i++) {
+        let min = 1.0; let max = -1.0;
+        for (let j = 0; j < step; j++) {
+          const d = rawData[i * step + j];
+          if (d < min) min = d;
+          if (d > max) max = d;
+        }
+        ctx.fillRect(i, (1 + min) * amp, 1.5, Math.max(1, (max - min) * amp));
+      }
+    }
+
+    document.getElementById("p-waveform-canvas").addEventListener("click", (e) => {
+      if (!targetBuffer) return;
+      const rect = document.getElementById("p-waveform-canvas").getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const targetTime = (clickX / rect.width) * targetBuffer.duration;
+      const wasPlaying = isPlaying;
+      if (isPlaying) {
+        sourceNode.stop();
+        processorNode.disconnect();
+      }
+      pauseTime = targetTime;
+      updatePlaybackTime(targetTime);
+      if (wasPlaying) play();
+    });
+
+    btnPlay.addEventListener("click", () => isPlaying ? pause() : play());
+    btnStop.addEventListener("click", () => stop());
+
+    btnModeA.addEventListener("click", () => {
+      currentMode = 'A';
+      btnModeA.className = "px-4 py-1.5 rounded-lg text-sm font-bold transition-all bg-brand-accent text-white shadow-md focus:outline-none";
+      btnModeB.className = "px-4 py-1.5 rounded-lg text-sm font-bold transition-all text-gray-400 hover:text-white focus:outline-none";
+    });
+
+    btnModeB.addEventListener("click", () => {
+      currentMode = 'B';
+      btnModeB.className = "px-4 py-1.5 rounded-lg text-sm font-bold transition-all bg-brand-accent text-white shadow-md focus:outline-none";
+      btnModeA.className = "px-4 py-1.5 rounded-lg text-sm font-bold transition-all text-gray-400 hover:text-white focus:outline-none";
+    });
+
+    btnReset.addEventListener("click", () => {
+      stop();
+      targetBuffer = null;
+      processedBuffer = null;
+      playerContainer.classList.add("hidden");
+      dropzone.classList.remove("hidden");
+      btnDownload.disabled = true;
+      fileInput.value = "";
+    });
+
+    sliderAttenuation.addEventListener("input", () => {
+      valAttenuation.textContent = `${sliderAttenuation.value}%`;
+      showLoader("Ajustando", "Recalculando frequências tonais...");
+      setTimeout(() => {
+        applyDSP();
+        hideLoader();
+      }, 50);
+    });
+
+    sliderCrossover.addEventListener("input", () => {
+      valCrossover.textContent = `${sliderCrossover.value} Hz`;
+      showLoader("Ajustando", "Recalculando frequências tonais...");
+      setTimeout(() => {
+        applyDSP();
+        hideLoader();
+      }, 50);
+    });
+
+    // Código síncrono nativo de alta velocidade para gerar e disparar o download imediato do WAV (Compatível com Windows/Mac)
+    btnDownload.addEventListener("click", () => {
+      if (!processedBuffer) return;
+      pause();
+      showLoader("Processando", "Criando faixa instrumental de alta fidelidade...");
+      
+      setTimeout(() => {
+        const wavBlob = bufferToWav(processedBuffer);
+        const url = URL.createObjectURL(wavBlob);
+        const l = document.createElement("a");
+        l.href = url;
+        l.download = `${targetFileName}_EstudioNeto_Instrumental.wav`;
+        document.body.appendChild(l); // Anexação física necessária para liberação em domínios seguros
+        l.click();
+        document.body.removeChild(l); // Limpeza imediata da DOM
+        URL.revokeObjectURL(url);
+        hideLoader();
+      }, 100);
+    });
+
+    function formatTime(seconds) {
+      const min = Math.floor(seconds / 60);
+      const sec = Math.floor(seconds % 60);
+      return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+    }
+
+    // Função síncrona nativa limpa para geração do WAV de 16-bit
+    function bufferToWav(buffer) {
+      let numOfChan = buffer.numberOfChannels,
+          length = buffer.length * numOfChan * 2 + 44,
+          bufferArr = new ArrayBuffer(length),
+          view = new DataView(bufferArr),
+          channels = [], i, sample,
+          offset = 0,
+          pos = 0;
+
+      setUint32(0x46464952);                         // "RIFF"
+      setUint32(length - 8);
+      setUint32(0x45564157);                         // "WAVE"
+
+      setUint32(0x20746d66);                         // "fmt "
+      setUint32(16);                                 
+      setUint16(1);                                  // PCM
+      setUint16(numOfChan);
+      setUint32(buffer.sampleRate);
+      setUint32(buffer.sampleRate * 2 * numOfChan);  
+      setUint16(numOfChan * 2);                      
+      setUint16(16);                                 // 16-bit
+
+      setUint32(0x61746164);                         // "data"
+      setUint32(length - pos - 4);                   
+
+      for (i = 0; i < numOfChan; i++) {
+        channels.push(buffer.getChannelData(i));
+      }
+
+      while (pos < length) {
+        for (i = 0; i < numOfChan; i++) {
+          sample = Math.max(-1, Math.min(1, channels[i][offset]));
+          sample = (sample < 0 ? sample * 0x8000 : sample * 0x7FFF);
+          view.setInt16(pos, sample, true);
+          pos += 2;
+        }
+        offset++;
+      }
+
+      return new Blob([bufferArr], { type: "audio/wav" });
+
+      function setUint16(data) { view.setUint16(pos, data, true); pos += 2; }
+      function setUint32(data) { view.setUint32(pos, data, true); pos += 4; }
+    }
+
+    window.addEventListener("resize", () => {
+      if (targetBuffer) {
+        drawWaveform();
+      }
+    });
+  </script>
+</body>
+</html>
