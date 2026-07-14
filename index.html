@@ -63,13 +63,22 @@
 </head>
 <body class="bg-[#04060b] text-gray-200 min-h-screen font-sans flex flex-col justify-between">
 
-  <!-- Header Simples e Dedicado (Sem Menus) -->
+  <!-- Header Simples e Dedicado (Com link de retorno ao site principal) -->
   <header class="border-b border-brand-border bg-brand-dark/90 py-4 px-6 sticky top-0 z-50">
-    <div class="max-w-6xl mx-auto flex items-center gap-3">
-      <span class="text-3xl">🎤</span>
-      <h1 class="text-xl font-bold bg-gradient-to-r from-white to-indigo-200 bg-clip-text text-transparent">
-        Removedor de Voz Local
-      </h1>
+    <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      
+      <div class="flex items-center gap-3">
+        <span class="text-3xl">🎤</span>
+        <h1 class="text-xl font-bold bg-gradient-to-r from-white to-indigo-200 bg-clip-text text-transparent">
+          Removedor de Voz Local
+        </h1>
+      </div>
+      
+      <!-- Botão para voltar ao Portal Principal -->
+      <a href="https://www.estudioneto.com.br/index.html" class="text-xs text-gray-400 hover:text-white transition-all border border-brand-border hover:border-brand-accent/40 bg-brand-dark px-4 py-2 rounded-xl flex items-center gap-2 font-semibold focus:outline-none">
+        <span>🏠</span> Voltar ao Estúdio Neto
+      </a>
+      
     </div>
   </header>
 
@@ -169,7 +178,7 @@
       <section class="space-y-4">
         <h2 class="text-2xl font-semibold text-white">Como Funciona a Isolação e Extração de Voz?</h2>
         <p>
-          A <strong class="text-white">isolação ou extração de voz</strong> consiste na separação das pistas vocais e instrumentais que compõem uma gravação estéreo finalizada. No passado, as primeiras tentativas de atenuação dependiam de um cancelamento de fase analógico simples que, ao subtrair os canais esquerdo e direito, acabava por eliminar também as baixas frequências (como contrabaixos e bumbos de bateria) que residiam no centro da mixagem de forma indevida.
+          A <strong class="text-white">isolação ou extração de voz</strong> consiste na separação das pistas vocais e instrumentais que compõem uma gravação estéreo finalizada. No passado, as primeiras tentativas de remoção dependiam de um cancelamento de fase analógico simples que, ao subtrair os canais esquerdo e direito, acabava por eliminar também as baixas frequências (como contrabaixos e bumbos de bateria) que residiam no centro da mixagem de forma indevida.
         </p>
         <p>
           Com os algoritmos de processamento digital modernos do Estúdio Neto, aplicamos filtros de crossover específicos na estrutura de sinal. Isso nos permite isolar e atenuar a voz principal localizada na imagem estéreo centralizada, mantendo totalmente intacto e com peso rítmico o campo de frequências graves da sua música.
@@ -186,7 +195,7 @@
           </div>
           <div class="bg-brand-card/60 border border-brand-border/40 rounded-xl p-5 space-y-2">
             <h3 class="text-lg font-semibold text-white">2. Ajustes e Filtros Dinâmicos</h3>
-            <p class="text-sm">Regule o controle deslizante de atenuação para definir o nível de remoção das vozes e configure o crossover de graves para isolar e preservar as batidas e a linha de baixo originais da gravação.</p>
+            <p class="text-sm">Regule o controle deslizante de atenuação para definir o nível de remoção das vozes e controle o crossover de graves para isolar e preservar as batidas e a linha de baixo originais da gravação.</p>
           </div>
           <div class="bg-brand-card/60 border border-brand-border/40 rounded-xl p-5 space-y-2">
             <h3 class="text-lg font-semibold text-white">3. Reprodução e Exportação</h3>
